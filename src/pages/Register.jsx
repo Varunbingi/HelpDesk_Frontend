@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { useNavigate,Link } from 'react-router-dom'; 
+import { useNavigate, Link } from 'react-router-dom'; 
 import { register } from '../services/api';
+import Cookies from 'js-cookie'; 
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -20,7 +21,10 @@ const Register = () => {
     e.preventDefault();
     setError(null);
     try {
-      await register(formData);
+      const res = await register(formData);
+      const { token } = res.data; 
+      localStorage.setItem('token', token);
+      Cookies.set('token', token, { expires: 1 }); 
       navigate('/login'); 
       setFormData({ username: '', email: '', password: '' }); 
     } catch (err) {
@@ -75,7 +79,7 @@ const Register = () => {
           </button>
           <h1>Already have an account? <Link to='/login'>Login</Link></h1>
         </form>
-        </div>
+      </div>
     </div>
   );
 };

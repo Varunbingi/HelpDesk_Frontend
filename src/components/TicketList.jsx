@@ -1,28 +1,10 @@
-import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { getTickets } from '../services/api'; 
 import { useNavigate } from 'react-router-dom';
 
-const TicketList = () => {
-  const [tickets, setTickets] = useState([]);
+const TicketList = ({ tickets }) => {
   const userId = useSelector((state) => state.user.userInfo.id);
   const userRole = useSelector((state) => state.user.userInfo.role); 
   const navigate = useNavigate();
-
-  const fetchTickets = async () => {
-    try {
-      const response = await getTickets();
-      setTickets(response.data);
-    } catch (error) {
-      console.error('Error fetching tickets:', error);
-    }
-  };
-
-  
-
-  useEffect(() => {
-    fetchTickets();
-  }, [userId, userRole]);
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -41,7 +23,6 @@ const TicketList = () => {
               <p className="text-gray-500 text-sm">
                 Last Updated On: {new Date(ticket.lastUpdatedOn).toLocaleString()}
               </p>
-
             </li>
           ))
         ) : (

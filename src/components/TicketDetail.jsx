@@ -3,14 +3,20 @@ import { useParams } from 'react-router-dom';
 import NoteForm from './NoteForm';
 import { getNotes, updateTicketStatus, getTicketStatus } from '../services/api'; 
 import Sidebar from './Sidebar';
+import { useSelector } from 'react-redux';
 
 const TicketDetail = () => {
   const { ticketId } = useParams();
   const [notes, setNotes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [ticketStatus, setTicketStatus] = useState(''); // State for ticket status
-  const [isNoteFormDisabled, setIsNoteFormDisabled] = useState(false); // State for disabling NoteForm
+  const [ticketStatus, setTicketStatus] = useState(''); 
+  const userRole = useSelector((state) => state.user.userInfo.role); 
+
+  const fetchNotesAndStatus = async () => {
+    await fetchNotes();
+    await fetchTicketStatus();
+  };
 
   const fetchNotes = async () => {
     try {
@@ -23,11 +29,8 @@ const TicketDetail = () => {
 
   const fetchTicketStatus = async () => {
     try {
-      const response = await getTicketStatus(ticketId); // Fetch the ticket status
-      setTicketStatus(response.data.status); // Assume response has a 'status' field
-
-      // Disable NoteForm if the status is 'Closed'
-      setIsNoteFormDisabled(response.data.status === 'Closed');
+      const response = await getTicketStatus(ticketId);
+      setTicketStatus(response.data.status);
     } catch (error) {
       console.error('Error fetching ticket status:', error);
     }
@@ -37,9 +40,8 @@ const TicketDetail = () => {
     setIsLoading(true);
     try {
       await updateTicketStatus(ticketId, 'Closed');
-      fetchNotes(); // Refresh notes or update your state accordingly
-      setTicketStatus('Closed'); // Update the status in the state
-      setIsNoteFormDisabled(true); // Disable NoteForm after closing the ticket
+      await fetchNotes(); 
+      setTicketStatus('Closed');
     } catch (error) {
       console.error('Error closing ticket:', error);
       setError('Failed to close the ticket.');
@@ -49,30 +51,27 @@ const TicketDetail = () => {
   };
 
   useEffect(() => {
-    fetchNotes();
-    fetchTicketStatus(); // Fetch the ticket status on mount
+    fetchNotesAndStatus();
   }, [ticketId]);
 
   return (
     <div className="flex h-screen">
       <Sidebar />
-
       <div className="w-4/5 flex flex-col p-4 relative bg-gray-50">
         <h2 className="text-2xl font-semibold mb-4">Ticket Details</h2>
 
-        
         <div className="absolute top-4 right-4 bg-gray-200 text-gray-800 py-1 px-2 rounded-md shadow-md">
           {ticketStatus}
         </div>
-
-        <button
-          onClick={closeTicket}
-          className="mb-4 px-4 py-2 w-1/4 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-          disabled={isLoading}
-        >
-          {isLoading ? 'Closing...' : 'Close Ticket'}
-        </button>
-
+        {userRole !== 'Customer' && (
+          <button
+            onClick={closeTicket}
+            className="mb-4 px-4 py-2 w-1/4 text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Closing...' : 'Close Ticket'}
+          </button>
+        )}
         {error && <p className="text-red-500">{error}</p>}
 
         <div className="flex-1 mb-4 overflow-auto max-h-[70vh] space-y-4 p-4 border rounded-lg bg-white shadow-md">
@@ -95,10 +94,11 @@ const TicketDetail = () => {
             <p className="text-gray-500">No notes available for this ticket.</p>
           )}
         </div>
-
-        <div className="bg-white p-4 shadow-md rounded-lg">
-          <NoteForm ticketId={ticketId} disabled={isNoteFormDisabled} /> {/* Pass the disabled state */}
-        </div>
+        {ticketStatus !== 'Closed' && (
+          <div className="bg-white p-4 shadow-md rounded-lg">
+            <NoteForm ticketId={ticketId} onNoteAdded={fetchNotesAndStatus} />
+          </div>
+        )}
       </div>
     </div>
   );

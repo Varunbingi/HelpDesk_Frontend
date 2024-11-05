@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { addNoteToTicket } from '../services/api';
 
-const NoteForm = ({ ticketId, disabled }) => {
+const NoteForm = ({ ticketId, onNoteAdded, disabled }) => {
   const [content, setContent] = useState('');
   const [file, setFile] = useState(null);
 
@@ -14,6 +14,7 @@ const NoteForm = ({ ticketId, disabled }) => {
     await addNoteToTicket(ticketId, formData);
     setContent('');
     setFile(null);
+    onNoteAdded();
   };
 
   return (

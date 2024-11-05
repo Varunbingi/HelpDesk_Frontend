@@ -36,12 +36,13 @@ const Sidebar = () => {
             )}
             {user ? (
               <li>
-                <button
+                <Link
+                  to={"/"}
                   onClick={handleLogout}
                   className="w-full text-left text-gray-300 hover:bg-gray-700 hover:text-white p-2 rounded transition"
                 >
                   Logout
-                </button>
+                </Link>
               </li>
             ) : (
               <>

@@ -2,10 +2,25 @@ import { useSelector } from 'react-redux';
 import Sidebar from '../components/Sidebar';
 import AddTicket from '../components/AddTicket';
 import TicketList from '../components/TicketList';
+import { useEffect, useState } from 'react';
+import { getTickets } from '../services/api'; 
 
 const Tickets = () => {
   const userRole = useSelector((state) => state.user.userInfo.role);
-  console.log(userRole);
+  const [tickets, setTickets] = useState([]);
+
+  const fetchTickets = async () => {
+    try {
+      const response = await getTickets();
+      setTickets(response.data);
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
@@ -16,13 +31,12 @@ const Tickets = () => {
         {userRole === 'Customer' && (
           <>
             <h2 className="text-2xl mb-4">Create Ticket</h2>
-            <AddTicket />
+            <AddTicket onTicketAdded={fetchTickets} />
           </>
         )}
 
-        
         <div className="flex-1 mt-6 overflow-y-auto">
-          <TicketList />
+          <TicketList tickets={tickets} />
         </div>
       </main>
     </div>

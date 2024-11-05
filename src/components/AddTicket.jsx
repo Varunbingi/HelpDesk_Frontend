@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { createTicket, getTickets } from '../services/api';
+import { createTicket } from '../services/api';
 import { useSelector } from 'react-redux';
 
-const AddTicket = () => {
+const AddTicket = ({ onTicketAdded }) => {
   const userId = useSelector((state) => state.user.userInfo.id);
   const [title, setTitle] = useState('');
   const [error, setError] = useState('');
@@ -14,7 +14,7 @@ const AddTicket = () => {
     try {
       await createTicket({ title, userId });
       setTitle('');
-      
+      onTicketAdded();
     } catch (err) {
       setError('Error creating ticket. Please try again.');
       console.error('Ticket creation error:', err);

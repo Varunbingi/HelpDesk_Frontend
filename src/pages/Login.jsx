@@ -1,9 +1,9 @@
-
 import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/Slice/userSlice.jsx';
 import { login } from '../services/api';
 import { Link, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie'; 
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -21,7 +21,11 @@ const Login = () => {
     setError(null);
     try {
       const res = await login(formData);
-      dispatch(setUser(res.data.user));
+      const { token, user } = res.data; 
+      localStorage.setItem('token', token);
+      Cookies.set('token', token, { expires: 1 }); 
+
+      dispatch(setUser(user));
       navigate('/');
     } catch (err) {
       setError('Login failed. Please check your credentials.',err);
